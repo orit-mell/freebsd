@@ -100,16 +100,65 @@
 #define	WD_SOFT_PRINTF	0x08	/* printf(9) */
 #define WD_SOFT_MASK	0x0f	/* all of the above */
 
+/*
+ * From http://stackoverflow.com/questions/559808/linux-software-watchdog
+ */
+struct watchdog_info {
+	int options;
+	int firmware_version; 
+	char identity[32];
+};
+
 #ifdef _KERNEL
 
 #include <sys/eventhandler.h>
+#include <sys/lock.h>
+#include <sys/mutex.h>
+#include <sys/conf.h>
 
 typedef void (*watchdog_fn)(void *, u_int, int *);
 
 EVENTHANDLER_DECLARE(watchdog_list, watchdog_fn);
 
+struct watchdog_device;
+
+struct watchdog_ops {
+        struct module *owner;
+        /* mandatory operations */
+        int (*start)(struct watchdog_device *);
+        int (*stop)(struct watchdog_device *);
+        /* optional operations */
+        int (*ping)(struct watchdog_device *);
+        unsigned int (*status)(struct watchdog_device *);
+        int (*set_timeout)(struct watchdog_device *, unsigned int);
+        unsigned int (*get_timeleft)(struct watchdog_device *);
+        void (*ref)(struct watchdog_device *);
+        void (*unref)(struct watchdog_device *);
+        long (*ioctl)(struct watchdog_device *, unsigned int, unsigned long);
+};
+
+struct watchdog_device {
+        int id;
+        struct cdev cdev;
+        struct device *dev;
+        struct device *parent;
+        const struct watchdog_info *info;
+        const struct watchdog_ops *ops;
+        unsigned int bootstatus;
+        unsigned int timeout;
+        unsigned int min_timeout;
+        unsigned int max_timeout;
+        void *driver_data;
+        struct mtx lock;
+        unsigned long status;
+};
+
 u_int	wdog_kern_last_timeout(void);
 int	wdog_kern_pat(u_int utim);
+
+int watchdog_register_device(struct watchdog_device *);
+void watchdog_unregister_device(struct watchdog_device *);
+
 #endif
 
 #endif /* _SYS_WATCHDOG_H */
