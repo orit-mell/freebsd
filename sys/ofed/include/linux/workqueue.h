@@ -80,7 +80,7 @@ do {									\
 	callout_init(&(_work)->timer, CALLOUT_MPSAFE);			\
 } while (0)
 
-#define	INIT_DELAYED_WORK_DEFERRABLE	INIT_DELAYED_WORK
+#define	INIT_DEFERRABLE_WORK	INIT_DELAYED_WORK
 
 #define	schedule_work(work)						\
 do {									\
