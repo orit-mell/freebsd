@@ -1,14 +1,21 @@
-# $FreeBSD: release/9.1.0/sys/modules/mlx4ib/Makefile 219820 2011-03-21 09:58:24Z jeff $
+# $FreeBSD$
+#.PATH:  ${.CURDIR}/../../ofed/drivers/infiniband/hw/mlx4
+#.PATH:  ${.CURIR}/../../../../include/linux
 .PATH:  ${.CURDIR}/../../ofed/drivers/infiniband/hw/mlx4
+.PATH:  ${.CURDIR}/../../ofed/include/linux
 
 .include <bsd.own.mk>
 
 KMOD    = mlx4ib
 SRCS    = device_if.h bus_if.h pci_if.h vnode_if.h opt_inet.h opt_inet6.h
-SRCS+=	ah.c cq.c doorbell.c mad.c main.c mr.c qp.c srq.c wc.c
-SRCS+=	opt_inet.h opt_inet6.h
+#SRCS+=  linux_compat.c linux_radix.c
+SRCS+=	ah.c cq.c doorbell.c mad.c main.c mr.c qp.c srq.c wc.c 
 
+#CFLAGS+= -I${.CURDIR}/../../ofed/include/
+#CFLAGS+= -I${.CURDIR}/../../../../include
+CFLAGS+= -I${.CURDIR}/../../ofed/drivers/infiniband/hw/mlx4
 CFLAGS+= -I${.CURDIR}/../../ofed/include/
+CFLAGS+= -DCONFIG_INFINIBAND_USER_MEM
 
 .if !defined(KERNBUILDDIR)
 .if ${MK_INET_SUPPORT} != "no"
