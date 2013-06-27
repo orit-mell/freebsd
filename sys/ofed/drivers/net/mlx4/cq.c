@@ -270,6 +270,23 @@ static void mlx4_cq_free_icm(struct mlx4_dev *dev, int cqn)
 		__mlx4_cq_free_icm(dev, cqn);
 }
 
+static int mlx4_find_least_loaded_vector(struct mlx4_priv *priv)
+{
+        int i;
+        int index = 0;
+        int min = priv->eq_table.eq[0].load;
+
+        for (i = 1; i < priv->dev.caps.num_comp_vectors; i++) {
+                if (priv->eq_table.eq[i].load < min) {
+                        index = i;
+                        min = priv->eq_table.eq[i].load;
+                }
+        }
+
+        return index;
+}
+
+
 int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
 		  struct mlx4_mtt *mtt, struct mlx4_uar *uar, u64 db_rec,
 		  struct mlx4_cq *cq, unsigned vector, int collapsed,
@@ -282,20 +299,24 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
 	u64 mtt_addr;
 	int err;
 
-	if (vector > dev->caps.num_comp_vectors + dev->caps.comp_pool)
-		return -EINVAL;
+        cq->vector = (vector == MLX4_LEAST_ATTACHED_VECTOR) ?
+                mlx4_find_least_loaded_vector(priv) : vector;
 
-	cq->vector = vector;
+	if (cq->vector > dev->caps.num_comp_vectors + dev->caps.comp_pool) {
+		return -EINVAL;
+        }
 
 	err = mlx4_cq_alloc_icm(dev, &cq->cqn);
-	if (err)
+	if (err) {
 		return err;
+        }
 
 	spin_lock_irq(&cq_table->lock);
 	err = radix_tree_insert(&cq_table->tree, cq->cqn, cq);
 	spin_unlock_irq(&cq_table->lock);
-	if (err)
+	if (err){
 		goto err_icm;
+        }
 
 	mailbox = mlx4_alloc_cmd_mailbox(dev);
 	if (IS_ERR(mailbox)) {
@@ -311,7 +332,7 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
 		cq_context->flags  |= cpu_to_be32(1 << 19);
 
 	cq_context->logsize_usrpage = cpu_to_be32((ilog2(nent) << 24) | uar->index);
-	cq_context->comp_eqn	    = priv->eq_table.eq[vector].eqn;
+	cq_context->comp_eqn	    = priv->eq_table.eq[cq->vector].eqn;
 	cq_context->log_page_size   = mtt->page_shift - MLX4_ICM_PAGE_SHIFT;
 
 	mtt_addr = mlx4_mtt_addr(dev, mtt);
@@ -324,6 +345,7 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
 	if (err)
 		goto err_radix;
 
+        priv->eq_table.eq[cq->vector].load++;
 	cq->cons_index = 0;
 	cq->arm_sn     = 1;
 	cq->uar        = uar;
@@ -357,6 +379,8 @@ void mlx4_cq_free(struct mlx4_dev *dev, struct mlx4_cq *cq)
 	if (err)
 		mlx4_warn(dev, "HW2SW_CQ failed (%d) for CQN %06x\n", err, cq->cqn);
 
+
+        priv->eq_table.eq[cq->vector].load--;
 	synchronize_irq(priv->eq_table.eq[cq->vector].irq);
 
 	spin_lock_irq(&cq_table->lock);

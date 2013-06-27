@@ -51,12 +51,40 @@ enum mlx4_dev_event {
 	MLX4_DEV_EVENT_SLAVE_SHUTDOWN,
 };
 
+
+enum mlx4_query_reply {
+        MLX4_QUERY_NOT_MINE     = -1,
+        MLX4_QUERY_MINE_NOPORT  = 0
+};
+
+enum mlx4_prot {
+        MLX4_PROT_IB,
+        MLX4_PROT_EN,
+};
+
+
+#if 0
+struct mlx4_interface {
+        void *                  (*add)   (struct mlx4_dev *dev);
+        void                    (*remove)(struct mlx4_dev *dev, void *context);
+        void                    (*event) (struct mlx4_dev *dev, void *context,
+                        enum mlx4_dev_event event, int port);
+        void *  (*get_prot_dev) (struct mlx4_dev *dev, void *context, u8 port);
+        enum mlx4_prot          protocol;
+
+        enum mlx4_query_reply   (*query) (void *context, void *);
+        struct list_head        list;
+};
+#endif
+
 struct mlx4_interface {
 	void *			(*add)	 (struct mlx4_dev *dev);
 	void			(*remove)(struct mlx4_dev *dev, void *context);
 	void			(*event) (struct mlx4_dev *dev, void *context,
-					  enum mlx4_dev_event event, unsigned long param);
+					  enum mlx4_dev_event event, int port);
+        enum mlx4_query_reply   (*query) (void *context, void *);
 	void *			(*get_dev)(struct mlx4_dev *dev, void *context, u8 port);
+        void *  (*get_prot_dev) (struct mlx4_dev *dev, void *context, u8 port);
 	struct list_head	list;
 	enum mlx4_protocol	protocol;
 };

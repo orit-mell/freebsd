@@ -61,6 +61,10 @@
 #define MLX4_RATELIMIT_1G_UNITS		4	/* 1 Gbps */
 #define MLX4_RATELIMIT_DEFAULT		0x00ff
 
+
+
+#define MLX4_LEAST_ATTACHED_VECTOR      0xffffffff
+
 enum {
 	MLX4_FLAG_MSI_X		= 1 << 0,
 	MLX4_FLAG_OLD_PORT_CMDS	= 1 << 1,
@@ -184,6 +188,18 @@ enum {
 
 enum {
 	MLX4_FUNC_CAP_64B_EQE_CQE	= 1L << 0
+};
+
+/* bit enums for an 8-bit flags field indicating special use
+ * QPs which require special handling in qp_reserve_range.
+ * Currently, this only includes QPs used by the ETH interface,
+ * where we expect to use blueflame.  These QPs must not have
+ * bits 6 and 7 set in their qp number.
+ *
+ * This enum may use only bits 0..7.
+ */
+enum {
+        MLX4_RESERVE_BF_QP      = 1 << 7,
 };
 
 

@@ -121,7 +121,7 @@ int mlx4_reset(struct mlx4_dev *dev)
 	iounmap(reset);
 
 	/* Docs say to wait one second before accessing device */
-	msleep(5000);
+	msleep(2000);
 
 	end = jiffies + MLX4_RESET_TIMEOUT_JIFFIES;
 	do {

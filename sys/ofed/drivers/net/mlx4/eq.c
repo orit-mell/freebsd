@@ -748,6 +748,7 @@ static irqreturn_t mlx4_interrupt(int irq, void *dev_ptr)
 	int work = 0;
 	int i;
 
+
 	writel(priv->eq_table.clr_mask, priv->eq_table.clr_int);
 
 	for (i = 0; i < dev->caps.num_comp_vectors + 1; ++i)

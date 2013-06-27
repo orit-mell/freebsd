@@ -353,6 +353,7 @@ struct mlx4_eq {
 	u16			irq;
 	u16			have_irq;
 	int			nent;
+        int                     load;
 	struct mlx4_buf_list   *page_list;
 	struct mlx4_mtt		mtt;
 };

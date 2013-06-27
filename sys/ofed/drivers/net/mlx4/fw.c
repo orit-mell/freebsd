@@ -1339,9 +1339,10 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
 			 INIT_HCA_LOG_MC_HASH_SZ_OFFSET);
 		MLX4_PUT(inbox, param->log_mc_table_sz,
 			 INIT_HCA_LOG_MC_TABLE_SZ_OFFSET);
-		if (dev->caps.steering_mode == MLX4_STEERING_MODE_B0)
+		if (dev->caps.steering_mode == MLX4_STEERING_MODE_B0) {
 			MLX4_PUT(inbox, (u8) (1 << 3),
 				 INIT_HCA_UC_STEERING_OFFSET);
+                }
 	}
 
 	/* TPT attributes */
@@ -1413,12 +1414,13 @@ int mlx4_QUERY_HCA(struct mlx4_dev *dev,
 		param->steering_mode = MLX4_STEERING_MODE_DEVICE_MANAGED;
 	} else {
 		MLX4_GET(byte_field, outbox, INIT_HCA_UC_STEERING_OFFSET);
-		if (byte_field & 0x8)
+		if (byte_field & 0x8) {
 			param->steering_mode = MLX4_STEERING_MODE_B0;
-		else
+                }
+		else {
 			param->steering_mode = MLX4_STEERING_MODE_A0;
+                }
 	}
-	/* steering attributes */
 	if (param->steering_mode == MLX4_STEERING_MODE_DEVICE_MANAGED) {
 		MLX4_GET(param->mc_base, outbox, INIT_HCA_FS_BASE_OFFSET);
 		MLX4_GET(param->log_mc_entry_sz, outbox,

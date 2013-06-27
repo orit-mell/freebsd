@@ -830,11 +830,11 @@ static ssize_t set_port_type(struct device *dev,
 	int i;
 	int err = 0;
 
-	if (!strcmp(buf, "ib"))
+	if (!strcmp(buf, "ib\n"))
 		info->tmp_type = MLX4_PORT_TYPE_IB;
-	else if (!strcmp(buf, "eth"))
+	else if (!strcmp(buf, "eth\n"))
 		info->tmp_type = MLX4_PORT_TYPE_ETH;
-	else if (!strcmp(buf, "auto"))
+	else if (!strcmp(buf, "auto\n"))
 		info->tmp_type = MLX4_PORT_TYPE_AUTO;
 	else {
 		mlx4_err(mdev, "%s is not supported port type\n", buf);
@@ -1497,6 +1497,8 @@ static int choose_log_fs_mgm_entry_size(int qp_per_entry)
 static void choose_steering_mode(struct mlx4_dev *dev,
 				 struct mlx4_dev_cap *dev_cap)
 {
+        high_rate_steer = 1;
+
 	if (high_rate_steer && !mlx4_is_mfunc(dev)) {
 		dev->caps.flags &= ~(MLX4_DEV_CAP_FLAG_VEP_MC_STEER |
 				     MLX4_DEV_CAP_FLAG_VEP_UC_STEER);
@@ -1516,8 +1518,9 @@ static void choose_steering_mode(struct mlx4_dev *dev,
 		dev->caps.num_qp_per_mgm = dev_cap->fs_max_num_qp_per_entry;
 	} else {
 		if (dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_UC_STEER &&
-		    dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_MC_STEER)
+		    dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_MC_STEER) {
 			dev->caps.steering_mode = MLX4_STEERING_MODE_B0;
+                }
 		else {
 			dev->caps.steering_mode = MLX4_STEERING_MODE_A0;
 
@@ -1533,6 +1536,9 @@ static void choose_steering_mode(struct mlx4_dev *dev,
 		dev->caps.num_qp_per_mgm = mlx4_get_qp_per_mgm(dev);
 	}
 	mlx4_dbg(dev, "Steering mode is: %s, oper_log_mgm_entry_size = %d, "
+		 "log_num_mgm_entry_size = %d\n",
+		 mlx4_steering_mode_str(dev->caps.steering_mode),
+		 dev->oper_log_mgm_entry_size, mlx4_log_num_mgm_entry_size);
 		 "log_num_mgm_entry_size = %d\n",
 		 mlx4_steering_mode_str(dev->caps.steering_mode),
 		 dev->oper_log_mgm_entry_size, mlx4_log_num_mgm_entry_size);
