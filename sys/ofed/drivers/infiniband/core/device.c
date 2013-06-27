@@ -273,61 +273,61 @@ out:
  * callback for each device that is added. @device must be allocated
  * with ib_alloc_device().
  */
-int ib_register_device(struct ib_device *device)
+int ib_register_device(struct ib_device *device,
+                       int (*port_callback)(struct ib_device *,
+                                            u8, struct kobject *))
 {
-	int ret;
+        int ret;
 
-	mutex_lock(&device_mutex);
+        mutex_lock(&device_mutex);
 
-	if (strchr(device->name, '%')) {
-		ret = alloc_name(device->name);
-		if (ret)
-			goto out;
-	}
+        if (strchr(device->name, '%')) {
+                ret = alloc_name(device->name);
+                if (ret)
+                        goto out;
+        }
 
-	if (ib_device_check_mandatory(device)) {
-		ret = -EINVAL;
-		goto out;
-	}
+        if (ib_device_check_mandatory(device)) {
+                ret = -EINVAL;
+                goto out;
+        }
 
-	INIT_LIST_HEAD(&device->event_handler_list);
-	INIT_LIST_HEAD(&device->client_data_list);
-	spin_lock_init(&device->event_handler_lock);
-	spin_lock_init(&device->client_data_lock);
-	device->ib_uverbs_xrcd_table = RB_ROOT;
-	mutex_init(&device->xrcd_table_mutex);
+        INIT_LIST_HEAD(&device->event_handler_list);
+        INIT_LIST_HEAD(&device->client_data_list);
+        spin_lock_init(&device->event_handler_lock);
+        spin_lock_init(&device->client_data_lock);
 
-	ret = read_port_table_lengths(device);
-	if (ret) {
-		printk(KERN_WARNING "Couldn't create table lengths cache for device %s\n",
-		       device->name);
-		goto out;
-	}
+        ret = read_port_table_lengths(device);
+        if (ret) {
+                printk(KERN_WARNING "Couldn't create table lengths cache for device %s\n",
+                       device->name);
+                goto out;
+        }
 
-	ret = ib_device_register_sysfs(device);
-	if (ret) {
-		printk(KERN_WARNING "Couldn't register device %s with driver model\n",
-		       device->name);
-		kfree(device->gid_tbl_len);
-		kfree(device->pkey_tbl_len);
-		goto out;
-	}
+        ret = ib_device_register_sysfs(device, port_callback);
+        if (ret) {
+                printk(KERN_WARNING "Couldn't register device %s with driver model\n",
+                       device->name);
+                kfree(device->gid_tbl_len);
+                kfree(device->pkey_tbl_len);
+                goto out;
+        }
 
-	list_add_tail(&device->core_list, &device_list);
+        list_add_tail(&device->core_list, &device_list);
 
-	device->reg_state = IB_DEV_REGISTERED;
+        device->reg_state = IB_DEV_REGISTERED;
 
-	{
-		struct ib_client *client;
+        {
+                struct ib_client *client;
 
-		list_for_each_entry(client, &client_list, list)
-			if (client->add && !add_client_context(device, client))
-				client->add(device);
-	}
+                list_for_each_entry(client, &client_list, list)
+                        if (client->add && !add_client_context(device, client))
+                                client->add(device);
+        }
 
  out:
-	mutex_unlock(&device_mutex);
-	return ret;
+        mutex_unlock(&device_mutex);
+        return ret;
 }
 EXPORT_SYMBOL(ib_register_device);
 
