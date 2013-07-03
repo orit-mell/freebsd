@@ -1539,9 +1539,6 @@ static void choose_steering_mode(struct mlx4_dev *dev,
 		 "log_num_mgm_entry_size = %d\n",
 		 mlx4_steering_mode_str(dev->caps.steering_mode),
 		 dev->oper_log_mgm_entry_size, mlx4_log_num_mgm_entry_size);
-		 "log_num_mgm_entry_size = %d\n",
-		 mlx4_steering_mode_str(dev->caps.steering_mode),
-		 dev->oper_log_mgm_entry_size, mlx4_log_num_mgm_entry_size);
 }
 
 static int mlx4_init_hca(struct mlx4_dev *dev)
