@@ -50,7 +50,6 @@
 #include <rdma/ib_smi.h>
 #include <rdma/ib_user_verbs.h>
 #include <rdma/ib_addr.h>
-#include <rdma/ib_umem.h>
 
 #include <linux/mlx4/driver.h>
 #include <linux/mlx4/cmd.h>
