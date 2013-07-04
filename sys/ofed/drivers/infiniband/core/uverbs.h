@@ -41,7 +41,6 @@
 #include <linux/idr.h>
 #include <linux/mutex.h>
 #include <linux/completion.h>
-#include <linux/cdev.h>
 
 #include <rdma/ib_verbs.h>
 #include <rdma/ib_umem.h>
@@ -70,25 +69,24 @@
 
 struct ib_uverbs_device {
 	struct kref				ref;
-	int					num_comp_vectors;
 	struct completion			comp;
+	int					devnum;
+	struct cdev			       *cdev;
 	struct device			       *dev;
 	struct ib_device		       *ib_dev;
-	int					devnum;
-	struct cdev			        cdev;
-	struct rb_root				xrcd_tree;
-	struct mutex				xrcd_tree_mutex;
+	int					num_comp_vectors;
 };
 
 struct ib_uverbs_event_file {
 	struct kref				ref;
-	int					is_async;
+	struct file			       *filp;
 	struct ib_uverbs_file		       *uverbs_file;
 	spinlock_t				lock;
-	int					is_closed;
 	wait_queue_head_t			poll_wait;
 	struct fasync_struct		       *async_queue;
 	struct list_head			event_list;
+	int					is_async;
+	int					is_closed;
 };
 
 struct ib_uverbs_file {
@@ -116,32 +114,15 @@ struct ib_uverbs_mcast_entry {
 	u16 			lid;
 };
 
-struct ib_uverbs_flow_entry {
-	struct list_head	list;
-	struct ib_flow_spec	spec;
-	int                     priority;
-};
-
 struct ib_uevent_object {
 	struct ib_uobject	uobject;
 	struct list_head	event_list;
 	u32			events_reported;
 };
 
-struct ib_uxrcd_object {
-	struct ib_uobject	uobject;
-	atomic_t		refcnt;
-};
-
-struct ib_usrq_object {
-	struct ib_uevent_object	uevent;
-	struct ib_uxrcd_object *uxrcd;
-};
-
 struct ib_uqp_object {
 	struct ib_uevent_object	uevent;
-	struct list_head	mcast_list;
-	struct list_head	flow_list;
+	struct list_head 	mcast_list;
 };
 
 struct ib_ucq_object {
@@ -153,6 +134,11 @@ struct ib_ucq_object {
 	u32			async_events_reported;
 };
 
+struct ib_uxrcd_object {
+	struct ib_uobject	uobject;
+	struct list_head	xrc_reg_qp_list;
+};
+
 extern spinlock_t ib_uverbs_idr_lock;
 extern struct idr ib_uverbs_pd_idr;
 extern struct idr ib_uverbs_mr_idr;
@@ -161,12 +147,12 @@ extern struct idr ib_uverbs_ah_idr;
 extern struct idr ib_uverbs_cq_idr;
 extern struct idr ib_uverbs_qp_idr;
 extern struct idr ib_uverbs_srq_idr;
-extern struct idr ib_uverbs_xrcd_idr;
+extern struct idr ib_uverbs_xrc_domain_idr;
 
 void idr_remove_uobj(struct idr *idp, struct ib_uobject *uobj);
 
 struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
-					int is_async);
+					int is_async, int *fd);
 struct ib_uverbs_event_file *ib_uverbs_lookup_comp_file(int fd);
 
 void ib_uverbs_release_ucq(struct ib_uverbs_file *file,
@@ -181,7 +167,12 @@ void ib_uverbs_qp_event_handler(struct ib_event *event, void *context_ptr);
 void ib_uverbs_srq_event_handler(struct ib_event *event, void *context_ptr);
 void ib_uverbs_event_handler(struct ib_event_handler *handler,
 			     struct ib_event *event);
-void ib_uverbs_dealloc_xrcd(struct ib_uverbs_device *dev, struct ib_xrcd *xrcd);
+void ib_uverbs_xrc_rcv_qp_event_handler(struct ib_event *event,
+					void *context_ptr);
+void ib_uverbs_dealloc_xrcd(struct ib_device *ib_dev,
+			    struct ib_xrcd *xrcd);
+int ib_uverbs_cleanup_xrc_rcv_qp(struct ib_uverbs_file *file,
+				 struct ib_xrcd *xrcd, u32 qp_num);
 
 #define IB_UVERBS_DECLARE_CMD(name)					\
 	ssize_t ib_uverbs_##name(struct ib_uverbs_file *file,		\
@@ -202,7 +193,6 @@ IB_UVERBS_DECLARE_CMD(poll_cq);
 IB_UVERBS_DECLARE_CMD(req_notify_cq);
 IB_UVERBS_DECLARE_CMD(destroy_cq);
 IB_UVERBS_DECLARE_CMD(create_qp);
-IB_UVERBS_DECLARE_CMD(open_qp);
 IB_UVERBS_DECLARE_CMD(query_qp);
 IB_UVERBS_DECLARE_CMD(modify_qp);
 IB_UVERBS_DECLARE_CMD(destroy_qp);
@@ -217,10 +207,14 @@ IB_UVERBS_DECLARE_CMD(create_srq);
 IB_UVERBS_DECLARE_CMD(modify_srq);
 IB_UVERBS_DECLARE_CMD(query_srq);
 IB_UVERBS_DECLARE_CMD(destroy_srq);
-IB_UVERBS_DECLARE_CMD(create_xsrq);
-IB_UVERBS_DECLARE_CMD(open_xrcd);
-IB_UVERBS_DECLARE_CMD(close_xrcd);
-IB_UVERBS_DECLARE_CMD(attach_flow);
-IB_UVERBS_DECLARE_CMD(detach_flow);
+IB_UVERBS_DECLARE_CMD(create_xrc_srq);
+IB_UVERBS_DECLARE_CMD(open_xrc_domain);
+IB_UVERBS_DECLARE_CMD(close_xrc_domain);
+IB_UVERBS_DECLARE_CMD(create_xrc_rcv_qp);
+IB_UVERBS_DECLARE_CMD(modify_xrc_rcv_qp);
+IB_UVERBS_DECLARE_CMD(query_xrc_rcv_qp);
+IB_UVERBS_DECLARE_CMD(reg_xrc_rcv_qp);
+IB_UVERBS_DECLARE_CMD(unreg_xrc_rcv_qp);
+
 
 #endif /* UVERBS_H */
