@@ -68,119 +68,57 @@ struct attribute_group {
  *      a variable string:  point arg1 at it, arg2 is max length.
  *      a constant string:  point arg1 at it, arg2 is zero.
  */
+
 static inline int
 sysctl_handle_attr(SYSCTL_HANDLER_ARGS)
 {
-        struct kobject *kobj;
-        struct attribute *attr;
-        const struct sysfs_ops *ops;
-        void *buf;
-        int error = 0;
-        ssize_t len;
+	struct kobject *kobj;
+	struct attribute *attr;
+	const struct sysfs_ops *ops;
+	void *buf;
+	int error;
+	ssize_t len;
 
-        kobj = arg1;
-        attr = (struct attribute *)arg2;
-        if (kobj->ktype == NULL || kobj->ktype->sysfs_ops == NULL)
-                return (ENODEV);
-        buf = (void *)get_zeroed_page(GFP_KERNEL);
-        if (buf == NULL)
-                return (ENOMEM);
-
-        ops = kobj->ktype->sysfs_ops;
-
-        /* Show */
-        if (ops->show == NULL)
-                goto store;
-        len = ops->show(kobj, attr, buf);
-        if (len < 0) {
-                error = -len;
-                len = 1;
-                if (error != EIO)
-                        goto out;
-        }
-        /* It's valid not to have a 'show' so we just return NUL. */
-        else if (len == 0)
-                len = 1;
-
-        len -= 1;
-        ((char*)buf)[len] = '\0';
-
-        error = SYSCTL_OUT(req, buf, len);
-        if ( error )
-                goto out;
-
-store:
-        /* Store */
-        if (!req->newptr || ops->store == NULL)
-                goto out;
-        if (req->newlen > PAGE_SIZE-2) { /* NUL terminated + '\n' */
-                error = EINVAL;
-                goto out;
-        }
-
-        error = SYSCTL_IN(req, buf, req->newlen);
-        if (error)
-                goto out;
-
-        ((char*)buf)[req->newlen] = '\n';
-        ((char*)buf)[req->newlen+1] = '\0';
-
-        len = ops->store(kobj, attr, buf, req->newlen);
-        if (len < 0)
-                error = -len;
+	kobj = arg1;
+	attr = (struct attribute *)arg2;
+	buf = (void *)get_zeroed_page(GFP_KERNEL);
+	len = 1;	/* Copy out a NULL byte at least. */
+	if (kobj->ktype == NULL || kobj->ktype->sysfs_ops == NULL)
+		return (ENODEV);
+	ops = kobj->ktype->sysfs_ops;
+	if (buf == NULL)
+		return (ENOMEM);
+	if (ops->show) {
+		len = ops->show(kobj, attr, buf);
+		/*
+		 * It's valid not to have a 'show' so we just return 1 byte
+		 * of NULL.
+	 	 */
+		if (len < 0) {
+			error = -len;
+			len = 1;
+			if (error != EIO)
+				goto out;
+		}
+	}
+	error = SYSCTL_OUT(req, buf, len);
+	if (error || !req->newptr || ops->store == NULL)
+		goto out;
+        
+        len = req->newlen - req->newidx;
+        error = SYSCTL_IN(req, buf, len);
+        ((char *)buf)[len] = '\0';
+        
+	if (error)
+		goto out;
+	len = ops->store(kobj, attr, buf, req->newlen);
+	if (len < 0)
+		error = -len;
 out:
-        free_page((unsigned long)buf);
+	free_page((unsigned long)buf);
 
-        return (error);
+	return (error);
 }
-#if 0
-static inline int
-sysctl_handle_attr(SYSCTL_HANDLER_ARGS)
-{
-        struct kobject *kobj;
-        struct attribute *attr;
-        const struct sysfs_ops *ops;
-        void *buf;
-        int error;
-        ssize_t len;
-
-        kobj = arg1;
-        attr = (struct attribute *)arg2;
-        buf = (void *)get_zeroed_page(GFP_KERNEL);
-        len = 1;	/* Copy out a NULL byte at least. */
-        if (kobj->ktype == NULL || kobj->ktype->sysfs_ops == NULL)
-                return (ENODEV);
-        ops = kobj->ktype->sysfs_ops;
-        if (buf == NULL)
-                return (ENOMEM);
-        if (ops->show) {
-                len = ops->show(kobj, attr, buf);
-                /*
-                 * It's valid not to have a 'show' so we just return 1 byte
-                 * of NULL.
-                 */
-                if (len < 0) {
-                        error = -len;
-                        len = 1;
-                        if (error != EIO)
-                                goto out;
-                }
-        }
-        error = SYSCTL_OUT(req, buf, len);
-        if (error || !req->newptr || ops->store == NULL)
-                goto out;
-        error = SYSCTL_IN(req, buf, PAGE_SIZE);
-        if (error)
-                goto out;
-        len = ops->store(kobj, attr, buf, req->newlen);
-        if (len < 0)
-                error = -len;
-out:
-        free_page((unsigned long)buf);
-
-        return (error);
-}
-#endif
 
 static inline int
 sysfs_create_file(struct kobject *kobj, const struct attribute *attr)
