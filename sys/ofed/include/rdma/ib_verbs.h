@@ -51,6 +51,7 @@
 
 #include <linux/atomic.h>
 #include <asm/uaccess.h>
+#include <linux/rbtree.h>
 #include <linux/mutex.h>
 
 extern struct workqueue_struct *ib_wq;
@@ -326,6 +327,7 @@ struct ib_port_attr {
 	u8			active_width;
 	u8			active_speed;
 	u8                      phys_state;
+	enum rdma_link_layer	link_layer;
 };
 
 enum ib_device_modify_flags {
@@ -372,6 +374,10 @@ enum ib_event_type {
 	IB_EVENT_GID_CHANGE,
 };
 
+enum ib_event_flags {
+	IB_XRC_QP_EVENT_FLAG = 0x80000000,
+};
+
 struct ib_event {
 	struct ib_device	*device;
 	union {
@@ -379,6 +385,7 @@ struct ib_event {
 		struct ib_qp	*qp;
 		struct ib_srq	*srq;
 		u8		port_num;
+		u32		xrc_qp_num;
 	} element;
 	enum ib_event_type	event;
 };
@@ -546,6 +553,7 @@ struct ib_wc {
 	u8			sl;
 	u8			dlid_path_bits;
 	u8			port_num;	/* valid only for DR SMPs on switches */
+	int			csum_ok;
 };
 
 enum ib_cq_notify_flags {
@@ -611,12 +619,13 @@ enum ib_qp_type {
 	IB_QPT_RC,
 	IB_QPT_UC,
 	IB_QPT_UD,
+	IB_QPT_XRC,
 	IB_QPT_RAW_IPV6,
 	IB_QPT_RAW_ETHERTYPE,
 	IB_QPT_RAW_PACKET = 8,
 	IB_QPT_XRC_INI = 9,
 	IB_QPT_XRC_TGT,
-	IB_QPT_MAX
+	IB_QPT_MAX,
 };
 
 enum ib_qp_create_flags {
@@ -779,6 +788,7 @@ enum ib_wr_opcode {
 	IB_WR_ATOMIC_CMP_AND_SWP,
 	IB_WR_ATOMIC_FETCH_AND_ADD,
 	IB_WR_LSO,
+	IB_WR_BIG_LSO,
 	IB_WR_SEND_WITH_INV,
 	IB_WR_RDMA_READ_WITH_INV,
 	IB_WR_LOCAL_INV,
@@ -864,6 +874,11 @@ struct ib_send_wr {
 			int				access_flags;
 			u32				rkey;
 		} fast_reg;
+		struct {
+			struct ib_unpacked_lrh	*lrh;
+			u32			eth_type;
+			u8			static_rate;
+		} raw_ety;
 	} wr;
 	u32			xrc_remote_srq_num;	/* XRC TGT QPs only */
 };
@@ -957,6 +972,12 @@ struct ib_udata {
 	size_t       outlen;
 };
 
+struct ib_uxrc_rcv_object {
+	struct list_head	list;		/* link to context's list */
+	u32			qp_num;
+	u32			domain_handle;
+};
+
 struct ib_pd {
 	struct ib_device       *device;
 	struct ib_uobject      *uobject;
@@ -965,9 +986,11 @@ struct ib_pd {
 
 struct ib_xrcd {
 	struct ib_device       *device;
+	struct ib_uobject      *uobject;
 	atomic_t		usecnt; /* count all exposed resources */
 	struct inode	       *inode;
-
+	struct rb_node		node;
+	
 	struct mutex		tgt_qp_mutex;
 	struct list_head	tgt_qp_list;
 };
@@ -1263,7 +1286,7 @@ struct ib_device {
 						  u64 virt_addr,
 						  int mr_access_flags,
 						  struct ib_udata *udata,
-						  int mr_id);
+							int mr_id);
 	int                        (*query_mr)(struct ib_mr *mr,
 					       struct ib_mr_attr *mr_attr);
 	int                        (*dereg_mr)(struct ib_mr *mr);
@@ -1305,10 +1328,32 @@ struct ib_device {
 						  struct ib_grh *in_grh,
 						  struct ib_mad *in_mad,
 						  struct ib_mad *out_mad);
+	struct ib_srq *		   (*create_xrc_srq)(struct ib_pd *pd,
+						     struct ib_cq *xrc_cq,
+						     struct ib_xrcd *xrcd,
+						     struct ib_srq_init_attr *srq_init_attr,
+						     struct ib_udata *udata);
 	struct ib_xrcd *	   (*alloc_xrcd)(struct ib_device *device,
 						 struct ib_ucontext *ucontext,
 						 struct ib_udata *udata);
 	int			   (*dealloc_xrcd)(struct ib_xrcd *xrcd);
+	int			   (*create_xrc_rcv_qp)(struct ib_qp_init_attr *init_attr,
+							u32 *qp_num);
+	int			   (*modify_xrc_rcv_qp)(struct ib_xrcd *xrcd,
+							u32 qp_num,
+							struct ib_qp_attr *attr,
+							int attr_mask);
+	int			   (*query_xrc_rcv_qp)(struct ib_xrcd *xrcd,
+						       u32 qp_num,
+						       struct ib_qp_attr *attr,
+						       int attr_mask,
+						       struct ib_qp_init_attr *init_attr);
+	int 			   (*reg_xrc_rcv_qp)(struct ib_xrcd *xrcd,
+						     void *context,
+						     u32 qp_num);
+	int 			   (*unreg_xrc_rcv_qp)(struct ib_xrcd *xrcd,
+						       void *context,
+						       u32 qp_num);
 	int                        (*attach_flow)(struct ib_qp *qp,
 						  struct ib_flow_spec *spec,
 						  int priority);
@@ -1341,6 +1386,8 @@ struct ib_device {
 	u32			     local_dma_lkey;
 	u8                           node_type;
 	u8                           phys_port_cnt;
+	struct rb_root		     ib_uverbs_xrcd_table;
+	struct mutex		     xrcd_table_mutex;
 };
 
 struct ib_client {
@@ -1506,6 +1553,26 @@ int ib_query_ah(struct ib_ah *ah, struct ib_ah_attr *ah_attr);
 int ib_destroy_ah(struct ib_ah *ah);
 
 /**
+ * ib_create_xrc_srq - Creates an XRC SRQ associated with the specified
+ *   protection domain, cq, and xrc domain.
+ * @pd: The protection domain associated with the SRQ.
+ * @xrc_cq: The cq to be associated with the XRC SRQ.
+ * @xrcd: The XRC domain to be associated with the XRC SRQ.
+ * @srq_init_attr: A list of initial attributes required to create the
+ *   XRC SRQ.  If XRC SRQ creation succeeds, then the attributes are updated
+ *   to the actual capabilities of the created XRC SRQ.
+ *
+ * srq_attr->max_wr and srq_attr->max_sge are read the determine the
+ * requested size of the XRC SRQ, and set to the actual values allocated
+ * on return.  If ib_create_xrc_srq() succeeds, then max_wr and max_sge
+ * will always be at least as large as the requested values.
+ */
+struct ib_srq *ib_create_xrc_srq(struct ib_pd *pd,
+				 struct ib_cq *xrc_cq,
+				 struct ib_xrcd *xrcd,
+				 struct ib_srq_init_attr *srq_init_attr);
+
+/**
  * ib_create_srq - Creates a SRQ associated with the specified protection
  *   domain.
  * @pd: The protection domain associated with the SRQ.
@@ -1665,6 +1732,13 @@ static inline int ib_post_recv(struct ib_qp *qp,
 {
 	return qp->device->post_recv(qp, recv_wr, bad_recv_wr);
 }
+
+/*
+ * IB_CQ_VECTOR_LEAST_ATTACHED: The constant specifies that
+ *	the CQ will be attached to the completion vector that has
+ *	the least number of CQs already attached to it.
+ */
+#define IB_CQ_VECTOR_LEAST_ATTACHED	0xffffffff
 
 /**
  * ib_create_cq - Creates a CQ on the specified device.
