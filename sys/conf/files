@@ -3626,9 +3626,6 @@ ofed/drivers/net/mlx4/sense.c			optional mlx4ib | mlxen	\
 ofed/drivers/net/mlx4/srq.c			optional mlx4ib | mlxen	\
 	no-depend obj-prefix "mlx4_"					\
 	compile-with "${OFED_C_NOIMP} -I$S/ofed/drivers/net/mlx4/"
-ofed/drivers/net/mlx4/xrcd.c			optional mlx4ib | mlxen	\
-	no-depend obj-prefix "mlx4_"					\
-	compile-with "${OFED_C_NOIMP} -I$S/ofed/drivers/net/mlx4/"
 
 ofed/drivers/net/mlx4/en_cq.c			optional mlxen		\
 	no-depend obj-prefix "mlx4_"					\
