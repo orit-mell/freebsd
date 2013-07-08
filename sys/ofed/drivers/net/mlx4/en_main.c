@@ -117,7 +117,7 @@ static void *get_netdev(struct mlx4_dev *dev, void *ctx, u8 port)
 }
 
 static void mlx4_en_event(struct mlx4_dev *dev, void *endev_ptr,
-			  enum mlx4_dev_event event, int port)
+			  enum mlx4_dev_event event, unsigned long port)
 {
 	struct mlx4_en_dev *mdev = (struct mlx4_en_dev *) endev_ptr;
 	struct mlx4_en_priv *priv;
@@ -352,7 +352,7 @@ static struct mlx4_interface mlx4_en_interface = {
 	.remove	= mlx4_en_remove,
 	.event	= mlx4_en_event,
 	.query  = mlx4_en_query,
-	.get_prot_dev	= get_netdev,
+	.get_dev	= get_netdev,
 	.protocol	= MLX4_PROT_EN,
 };
 
