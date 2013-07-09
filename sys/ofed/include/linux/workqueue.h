@@ -121,6 +121,14 @@ queue_delayed_work(struct workqueue_struct *wq, struct delayed_work *work,
 	return (!pending);
 }
 
+static inline bool schedule_delayed_work(struct delayed_work *dwork,
+                                         unsigned long delay)
+{
+        struct workqueue_struct wq;
+        wq.taskqueue = taskqueue_thread;
+        return queue_delayed_work(&wq, dwork, delay);
+}
+
 static inline struct workqueue_struct *
 _create_workqueue_common(char *name, int cpus)
 {
