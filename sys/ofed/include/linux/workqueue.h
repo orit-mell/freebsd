@@ -190,4 +190,15 @@ cancel_delayed_work(struct delayed_work *work)
 	return 0;
 }
 
+static inline int
+cancel_delayed_work_sync(struct delayed_work *work)
+{
+
+        callout_drain(&work->timer);
+        if (work->work.taskqueue &&
+            taskqueue_cancel(work->work.taskqueue, &work->work.work_task, NULL))
+                taskqueue_drain(work->work.taskqueue, &work->work.work_task);
+        return 0;
+}
+
 #endif	/* _LINUX_WORKQUEUE_H_ */
