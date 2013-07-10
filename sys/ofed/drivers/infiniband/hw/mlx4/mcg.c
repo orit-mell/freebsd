@@ -53,11 +53,6 @@
 #define mcg_error_group(group, format, arg...) \
 	pr_err("  %16s: " format, (group)->name, ## arg)
 
-#ifndef __linux__
-#define list_first_entry(ptr, type, member) \
-        list_entry((ptr)->next, type, member)
-#endif
-
 static union ib_gid mgid0;
 
 static struct workqueue_struct *clean_wq;
