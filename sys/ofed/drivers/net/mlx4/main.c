@@ -1497,6 +1497,13 @@ static int choose_log_fs_mgm_entry_size(int qp_per_entry)
 static void choose_steering_mode(struct mlx4_dev *dev,
 				 struct mlx4_dev_cap *dev_cap)
 {
+        // This is only valid to the integrated driver.
+        // The new ported mlx4_core driver is in B0 steering mode by default
+        // and the old mlx4_en driver is in A0 steering mode by default.
+        // If high_rate_steer == TRUE it means that A0 steering mode is on.
+        // The integration fix is to hard code high_rate_steer to TRUE.
+        high_rate_steer = 1;
+
 	if (high_rate_steer && !mlx4_is_mfunc(dev)) {
 		dev->caps.flags &= ~(MLX4_DEV_CAP_FLAG_VEP_MC_STEER |
 				     MLX4_DEV_CAP_FLAG_VEP_UC_STEER);
@@ -1516,8 +1523,9 @@ static void choose_steering_mode(struct mlx4_dev *dev,
 		dev->caps.num_qp_per_mgm = dev_cap->fs_max_num_qp_per_entry;
 	} else {
 		if (dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_UC_STEER &&
-		    dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_MC_STEER)
+		    dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_MC_STEER) {
 			dev->caps.steering_mode = MLX4_STEERING_MODE_B0;
+                }
 		else {
 			dev->caps.steering_mode = MLX4_STEERING_MODE_A0;
 
