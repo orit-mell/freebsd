@@ -372,6 +372,28 @@ struct ib_sa_notice_data_port_error {
 	u8	padding[49];
 };
 
+#define IB_SA_GUIDINFO_REC_LID		IB_SA_COMP_MASK(0)
+#define IB_SA_GUIDINFO_REC_BLOCK_NUM	IB_SA_COMP_MASK(1)
+#define IB_SA_GUIDINFO_REC_RES1		IB_SA_COMP_MASK(2)
+#define IB_SA_GUIDINFO_REC_RES2		IB_SA_COMP_MASK(3)
+#define IB_SA_GUIDINFO_REC_GID0		IB_SA_COMP_MASK(4)
+#define IB_SA_GUIDINFO_REC_GID1		IB_SA_COMP_MASK(5)
+#define IB_SA_GUIDINFO_REC_GID2		IB_SA_COMP_MASK(6)
+#define IB_SA_GUIDINFO_REC_GID3		IB_SA_COMP_MASK(7)
+#define IB_SA_GUIDINFO_REC_GID4		IB_SA_COMP_MASK(8)
+#define IB_SA_GUIDINFO_REC_GID5		IB_SA_COMP_MASK(9)
+#define IB_SA_GUIDINFO_REC_GID6		IB_SA_COMP_MASK(10)
+#define IB_SA_GUIDINFO_REC_GID7		IB_SA_COMP_MASK(11)
+
+struct ib_sa_guidinfo_rec {
+	__be16	lid;
+	u8	block_num;
+	/* reserved */
+	u8	res1;
+	__be32	res2;
+	u8	guid_info_list[64];
+};
+
 struct ib_sa_client {
 	atomic_t users;
 	struct completion comp;
