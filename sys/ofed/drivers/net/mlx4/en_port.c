@@ -39,13 +39,14 @@
 #include <linux/mlx4/device.h>
 #include <linux/mlx4/cmd.h>
 
-
+#if 0 //  moved to port.c
 int mlx4_SET_MCAST_FLTR(struct mlx4_dev *dev, u8 port,
 			u64 mac, u64 clear, u8 mode)
 {
 	return mlx4_cmd(dev, (mac | (clear << 63)), port, mode,
 			MLX4_CMD_SET_MCAST_FLTR, MLX4_CMD_TIME_CLASS_B, MLX4_CMD_NATIVE);
 }
+#endif
 
 int mlx4_SET_VLAN_FLTR(struct mlx4_dev *dev, u8 port, u32 *vlans)
 {
@@ -71,6 +72,7 @@ int mlx4_SET_VLAN_FLTR(struct mlx4_dev *dev, u8 port, u32 *vlans)
 }
 
 
+#if 0 //moved to port.c - shahark
 int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
 			  u8 pptx, u8 pfctx, u8 pprx, u8 pfcrx)
 {
@@ -99,7 +101,6 @@ int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
 	mlx4_free_cmd_mailbox(dev, mailbox);
 	return err;
 }
-#if 0 //moved to port.c - shahark
 int mlx4_SET_PORT_qpn_calc(struct mlx4_dev *dev, u8 port, u32 base_qpn,
 			   u8 promisc)
 {
