@@ -578,4 +578,16 @@ ib_sa_register_inform_info(struct ib_sa_client *client,
  */
 void ib_sa_unregister_inform_info(struct ib_inform_info *info);
 
+int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
+                              struct ib_device *device, u8 port_num,
+                              struct ib_sa_guidinfo_rec *rec,
+                              ib_sa_comp_mask comp_mask, u8 method,
+                              int timeout_ms, gfp_t gfp_mask,
+                              void (*callback)(int status,
+                                               struct ib_sa_guidinfo_rec *resp,
+                                               void *context),
+                              void *context,
+                              struct ib_sa_query **sa_query);
+
+
 #endif /* IB_SA_H */
