@@ -274,7 +274,7 @@ static void aliasguid_query_handler(int status,
 					     "configuration. "
 					     "Record num %d in block_num:%d "
 					     "was declined by SM, "
-					     "new val(0x%llx) was kept\n",
+					     "new val(0x%lx) was kept\n",
 					      __func__, i,
 					     guid_rec->block_num,
 					     be64_to_cpu(*(__be64 *) &

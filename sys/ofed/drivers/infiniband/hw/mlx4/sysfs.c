@@ -34,7 +34,6 @@
 #include "mlx4_ib.h"
 #include <linux/slab.h>
 #include <linux/string.h>
-#include <linux/stat.h>
 
 #include <rdma/ib_mad.h>
 /*show_admin_alias_guid returns the administratively assigned value of that GUID.
@@ -56,7 +55,7 @@ static ssize_t show_admin_alias_guid(struct device *dev,
 	record_num = mlx4_ib_iov_dentry->entry_num / 8 ;
 	guid_index_in_rec = mlx4_ib_iov_dentry->entry_num % 8 ;
 
-	return sprintf(buf, "%llx\n",
+	return sprintf(buf, "%lx\n",
 		       be64_to_cpu(*(__be64 *)&mdev->sriov.alias_guid.
 				   ports_guid[port->num - 1].
 				   all_rec_per_port[record_num].
