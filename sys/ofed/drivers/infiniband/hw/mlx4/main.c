@@ -2428,3 +2428,20 @@ static void __exit mlx4_ib_cleanup(void)
 
 module_init(mlx4_ib_init);
 module_exit(mlx4_ib_cleanup);
+
+#undef MODULE_VERSION
+#include <sys/module.h>
+static int
+mlx4ib_evhand(module_t mod, int event, void *arg)
+{
+        return (0);
+}
+
+static moduledata_t mlx4ib_mod = {
+        .name = "mlx4ib",
+        .evhand = mlx4ib_evhand,
+};
+
+DECLARE_MODULE(mlx4ib, mlx4ib_mod, SI_SUB_SMP, SI_ORDER_ANY);
+MODULE_DEPEND(mlx4ib, mlx4, 1, 1, 1);
+MODULE_DEPEND(mlx4ib, ibcore, 1, 1, 1);
