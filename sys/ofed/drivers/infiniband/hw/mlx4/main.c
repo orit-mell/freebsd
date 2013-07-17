@@ -1614,8 +1614,8 @@ static void mlx4_ib_alloc_eqs(struct mlx4_dev *dev, struct mlx4_ib_dev *ibdev)
 	eq = 0;
 	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_IB) {
 		for (j = 0; j < eq_per_port; j++) {
-			sprintf(name, "mlx4-ib-%d-%d@%s",
-				i, j, dev->pdev->bus->conf.pd_name);
+			//sprintf(name, "mlx4-ib-%d-%d@%s",
+			//	i, j, dev->pdev->bus->conf.pd_name);
 			/* Set IRQ for specific name (per ring) */
 			if (mlx4_assign_eq(dev, name,
 					   &ibdev->eq_table[eq])) {
@@ -1861,22 +1861,22 @@ err:
 
 static int mlx4_ib_dev_idx(struct mlx4_dev *dev)
 {
-	int bus, slot, fn;
+	int /*bus,*/ slot, fn;
 	int i;
 
 	if (!dev)
 		return -1;
 	else if (!dev->pdev)
 		return -1;
-	else if (!dev->pdev->bus)
-		return -1;
+	//else if (!dev->pdev->bus)
+	//	return -1;
 
-	bus	= dev->pdev->bus->conf.pc_sel.pc_bus;
+	//bus	= dev->pdev->bus->conf.pc_sel.pc_bus;
 	slot	= PCI_SLOT(dev->pdev->devfn);
 	fn	= PCI_FUNC(dev->pdev->devfn);
 
 	for (i = 0; i < MAX_DR; ++i) {
-		if (dr[i].bus == bus &&
+		if (/*dr[i].bus == bus &&*/
 		    dr[i].dev == slot &&
 		    dr[i].func == fn) {
 			return dr[i].nr;
