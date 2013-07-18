@@ -841,7 +841,7 @@ static ssize_t set_port_type(struct device *dev,
 		return -EINVAL;
 	}
 
-	mlx4_sense_cleanup(mdev);
+        mlx4_stop_sense(mdev);
 	mutex_lock(&priv->port_mutex);
 	/* Possible type is always the one that was delivered */
 	mdev->caps.possible_type[info->port] = info->tmp_type;
@@ -962,7 +962,7 @@ static ssize_t set_port_ib_mtu(struct device *dev,
 
 	mdev->caps.port_ib_mtu[info->port] = ibta_mtu;
 
-	mlx4_sense_cleanup(mdev);
+	mlx4_stop_sense(mdev);
 	mutex_lock(&priv->port_mutex);
 	mlx4_unregister_device(mdev);
 	for (port = 1; port <= mdev->caps.num_ports; port++) {
