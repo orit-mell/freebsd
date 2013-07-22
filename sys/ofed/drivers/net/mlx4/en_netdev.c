@@ -696,7 +696,7 @@ wol_err:
 	mlx4_CLOSE_PORT(mdev->dev, priv->port);
 
 mac_err:
-	mlx4_unregister_mac(mdev->dev, priv->port, priv->mac_index);
+	mlx4_unregister_mac(mdev->dev, priv->port, priv->mac);
 tx_err:
 	while (tx_index--) {
 		mlx4_en_deactivate_tx_ring(priv, &priv->tx_ring[tx_index]);
@@ -729,7 +729,7 @@ void mlx4_en_stop_port(struct net_device *dev)
 	priv->port_up = false;
 
 	/* Unregister Mac address for the port */
-	mlx4_unregister_mac(mdev->dev, priv->port, priv->mac_index);
+	mlx4_unregister_mac(mdev->dev, priv->port, priv->mac);
 	mdev->mac_removed[priv->port] = 1;
 
 	/* Free TX Rings */
