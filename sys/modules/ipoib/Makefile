@@ -12,7 +12,7 @@ SRCS+=  linux_compat.c linux_radix.c linux_idr.c
 CFLAGS+= -I${.CURDIR}/../../ofed/drivers/infiniband/ulp/ipoib
 CFLAGS+= -I${.CURDIR}/../ibcore
 CFLAGS+= -I${.CURDIR}/../../ofed/include/
-CFLAGS+= -DOFED
+CFLAGS+= -DINET6 -DINET -DOFED
 
 .if !defined(KERNBUILDDIR)
 .if ${MK_INET_SUPPORT} != "no"

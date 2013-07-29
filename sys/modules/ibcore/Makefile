@@ -16,7 +16,7 @@ SRCS+= vnode_if.h device_if.h bus_if.h pci_if.h opt_inet.h
 CFLAGS+= -I${.CURDIR}/../../ofed/drivers/infiniband/core
 CFLAGS+= -I${.CURDIR}/../mlx4ib
 CFLAGS+= -I${.CURDIR}/../../ofed/include/
-CFLAGS+= -DINET6
+CFLAGS+= -DINET6 -DINET -DOFED
 
 .include <bsd.kmod.mk>
 

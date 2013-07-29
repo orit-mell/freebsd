@@ -14,6 +14,7 @@ SRCS+=	alias_GUID.c mcg.c sysfs.c ah.c cq.c doorbell.c mad.c main.c mr.c qp.c sr
 CFLAGS+= -I${.CURDIR}/../../ofed/drivers/infiniband/hw/mlx4
 CFLAGS+= -I${.CURDIR}/../../ofed/include/
 CFLAGS+= -DCONFIG_INFINIBAND_USER_MEM
+CFLAGS+= -DINET6 -DINET -DOFED
 
 .if !defined(KERNBUILDDIR)
 .if ${MK_INET_SUPPORT} != "no"
