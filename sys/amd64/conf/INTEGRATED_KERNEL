@@ -356,5 +356,5 @@ options IPOIB_DEBUG
 options IPOIB_CM              # Use connect mode ipoib
 device mlx4ib                         # ConnectX Infiniband support
 device mlxen                  # ConnectX Ethernet support
-device mthca                  # Infinihost cards
+#device mthca                  # Infinihost cards
 device ipoib                  # IP over IB devices
