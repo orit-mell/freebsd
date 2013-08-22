@@ -945,6 +945,10 @@ void mlx4_en_destroy_netdev(struct net_device *dev)
 	mutex_unlock(&mdev->state_lock);
 
 	mlx4_en_free_resources(priv);
+
+	if (priv->sysctl)
+			sysctl_ctx_free(&priv->conf_ctx);
+
 	mtx_destroy(&priv->stats_lock.m);
 	mtx_destroy(&priv->vlan_lock.m);
 	kfree(priv);
