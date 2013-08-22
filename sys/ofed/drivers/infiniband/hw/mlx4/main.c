@@ -2208,11 +2208,16 @@ int mlx4_ib_steer_qp_reg(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
 static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
 {
 	struct mlx4_ib_dev *ibdev = ibdev_ptr;
-	int p;
+	int p,j;
 
 	mlx4_ib_close_sriov(ibdev);
 	sysfs_remove_group(&ibdev->ib_dev.dev.kobj, &diag_counters_group);
 	mlx4_ib_mad_cleanup(ibdev);
+
+	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
+		device_remove_file(&ibdev->ib_dev.dev, mlx4_class_attributes[j]);
+	}
+
 	ib_unregister_device(&ibdev->ib_dev);
 
 	if (dev->caps.steering_mode == MLX4_STEERING_MODE_DEVICE_MANAGED) {

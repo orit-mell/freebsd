@@ -928,9 +928,14 @@ void ib_device_unregister_sysfs(struct ib_device *device)
 {
 	struct kobject *p, *t;
 	struct ib_port *port;
+	int i;
 
 	/* Hold kobject until ib_dealloc_device() */
 	kobject_get(&device->dev.kobj);
+
+	for (i = 0; i < ARRAY_SIZE(ib_class_attributes); ++i) {
+			device_remove_file(&device->dev, ib_class_attributes[i]);
+	}
 
 	list_for_each_entry_safe(p, t, &device->port_list, entry) {
 		list_del(&p->entry);
