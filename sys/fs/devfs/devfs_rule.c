@@ -72,6 +72,7 @@
 #include <sys/ioccom.h>
 #include <sys/lock.h>
 #include <sys/sx.h>
+#include <sys/sysctl.h>
 
 #include <fs/devfs/devfs.h>
 #include <fs/devfs/devfs_int.h>

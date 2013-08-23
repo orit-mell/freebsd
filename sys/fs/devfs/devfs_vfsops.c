@@ -36,6 +36,7 @@
 
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/conf.h>
 #include <sys/kernel.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
@@ -47,6 +48,7 @@
 #include <sys/jail.h>
 
 #include <fs/devfs/devfs.h>
+#include <fs/devfs/devfs_priv.h>
 
 static struct unrhdr	*devfs_unr;
 
@@ -58,8 +60,48 @@ static vfs_root_t	devfs_root;
 static vfs_statfs_t	devfs_statfs;
 
 static const char *devfs_opts[] = {
-	"from", "export", "ruleset", NULL
+	"from", "export", "ruleset", "expandsymlinks", NULL
 };
+
+static int devfs_expandsymlinks = 0;
+
+SYSCTL_INT(_vfs_devfs, OID_AUTO, expandsymlinks, CTLFLAG_RW,
+     &devfs_expandsymlinks, 0, "DEVFS expand symlinks");
+TUNABLE_INT("vfs.devfs.expandsymlinks", &devfs_expandsymlinks);
+
+static void
+apply_aux_opts(struct mount *mp)
+{
+	struct devfs_mount *fmp;
+	struct vfsoptlist *optlist;
+	int seen;
+
+	fmp = mp->mnt_data;
+	seen = 0;
+	optlist = (mp->mnt_flag & MNT_UPDATE) ? mp->mnt_optnew : mp->mnt_opt;
+	if (optlist == NULL) {
+		printf("apply_aux_opts: optlist NULL\n");
+		return;
+	}
+	if (vfs_getopt(optlist, "expandsymlinks", NULL, NULL) == 0) {
+		printf("apply_aux_opts: expandsymlinks\n");
+		fmp->dm_flags |= DM_EXPANDSYMLINKS;
+		seen++;
+	}
+	if (vfs_getopt(optlist, "noexpandsymlinks", NULL, NULL) == 0) {
+		printf("apply_aux_opts: noexpandsymlinks\n");
+		fmp->dm_flags &= ~DM_EXPANDSYMLINKS;
+		seen++;
+	}
+	/*
+	 * If we have not seen the option and this is not a mount update
+	 * apply the sysctl/tunable default.
+	 */
+	if (!seen && !(mp->mnt_flag & MNT_UPDATE) && devfs_expandsymlinks) {
+		printf("apply_aux_opts: devfs_expandsymlinks -> expandsymlinks\n");
+		fmp->dm_flags |= DM_EXPANDSYMLINKS;
+	}
+}
 
 /*
  * Mount the filesystem
@@ -112,6 +154,7 @@ devfs_mount(struct mount *mp)
 		rsnum = td->td_ucred->cr_prison->pr_devfs_rsnum;
 
 	if (mp->mnt_flag & MNT_UPDATE) {
+		apply_aux_opts(mp);
 		if (rsnum != 0) {
 			fmp = mp->mnt_data;
 			if (fmp != NULL) {
@@ -139,6 +182,8 @@ devfs_mount(struct mount *mp)
 	fmp->dm_mount = mp;
 	mp->mnt_data = (void *) fmp;
 	vfs_getnewfsid(mp);
+
+	apply_aux_opts(mp);
 
 	fmp->dm_rootdir = devfs_vmkdir(fmp, NULL, 0, NULL, DEVFS_ROOTINO);
 

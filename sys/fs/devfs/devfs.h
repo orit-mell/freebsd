@@ -155,6 +155,8 @@ struct devfs_dirent {
 
 struct devfs_mount {
 	u_int			dm_idx;
+	int			dm_flags;
+#define DM_EXPANDSYMLINKS	0x01
 	struct mount		*dm_mount;
 	struct devfs_dirent	*dm_rootdir;
 	unsigned		dm_generation;
@@ -203,3 +205,4 @@ struct devfs_dirent	*devfs_find(struct devfs_dirent *, const char *, int,
 #endif /* _KERNEL */
 
 #endif /* !_FS_DEVFS_DEVFS_H_ */
+

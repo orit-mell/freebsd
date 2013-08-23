@@ -45,6 +45,7 @@
 
 #include <fs/devfs/devfs.h>
 #include <fs/devfs/devfs_int.h>
+#include <fs/devfs/devfs_priv.h>
 
 #include <security/mac/mac_framework.h>
 
@@ -61,7 +62,7 @@ static MALLOC_DEFINE(M_DEVFS2, "DEVFS2", "DEVFS data 2");
 static MALLOC_DEFINE(M_DEVFS3, "DEVFS3", "DEVFS data 3");
 static MALLOC_DEFINE(M_CDEVP, "DEVFS1", "DEVFS cdev_priv storage");
 
-static SYSCTL_NODE(_vfs, OID_AUTO, devfs, CTLFLAG_RW, 0, "DEVFS filesystem");
+SYSCTL_NODE(_vfs, OID_AUTO, devfs, CTLFLAG_RW, 0, "DEVFS filesystem");
 
 static unsigned devfs_generation;
 SYSCTL_UINT(_vfs_devfs, OID_AUTO, generation, CTLFLAG_RD,

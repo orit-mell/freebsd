@@ -37,6 +37,7 @@
 #include <sys/queue.h>
 #include <sys/systm.h>
 #include <sys/sx.h>
+#include <sys/sysctl.h>
 
 #include <fs/devfs/devfs.h>
 #include <fs/devfs/devfs_int.h>
