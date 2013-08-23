@@ -78,20 +78,25 @@ apply_aux_opts(struct mount *mp)
 
 	fmp = mp->mnt_data;
 	seen = 0;
-	optlist = (mp->mnt_flag & MNT_UPDATE) ? mp->mnt_optnew : mp->mnt_opt;
+	optlist = mp->mnt_optnew;
+
+	printf("apply_aux_opts: %s:\n", mp->mnt_stat.f_mntonname);
 	if (optlist == NULL) {
-		printf("apply_aux_opts: optlist NULL\n");
-		return;
-	}
-	if (vfs_getopt(optlist, "expandsymlinks", NULL, NULL) == 0) {
-		printf("apply_aux_opts: expandsymlinks\n");
-		fmp->dm_flags |= DM_EXPANDSYMLINKS;
-		seen++;
-	}
-	if (vfs_getopt(optlist, "noexpandsymlinks", NULL, NULL) == 0) {
-		printf("apply_aux_opts: noexpandsymlinks\n");
-		fmp->dm_flags &= ~DM_EXPANDSYMLINKS;
-		seen++;
+		printf(
+		    "apply_aux_opts: optlist NULL mnt_optnew:%p mnt_opt:%p\n",
+		    mp->mnt_optnew, mp->mnt_opt);
+	} else {
+		if (vfs_getopt(optlist, "expandsymlinks", NULL, NULL) == 0) {
+
+			printf("apply_aux_opts: vfs_getopt -> expandsymlinks\n");
+			fmp->dm_flags |= DM_EXPANDSYMLINKS;
+			seen++;
+		}
+		if (vfs_getopt(optlist, "noexpandsymlinks", NULL, NULL) == 0) {
+			printf("apply_aux_opts: vfs_getopt -> noexpandsymlinks\n");
+			fmp->dm_flags &= ~DM_EXPANDSYMLINKS;
+			seen++;
+		}
 	}
 	/*
 	 * If we have not seen the option and this is not a mount update
@@ -101,6 +106,9 @@ apply_aux_opts(struct mount *mp)
 		printf("apply_aux_opts: devfs_expandsymlinks -> expandsymlinks\n");
 		fmp->dm_flags |= DM_EXPANDSYMLINKS;
 	}
+	printf("apply_aux_opts: %s -> %sexpandsymlinks\n",
+	    mp->mnt_stat.f_mntonname,
+	    (fmp->dm_flags & DM_EXPANDSYMLINKS) ?  "" : "no");
 }
 
 /*
