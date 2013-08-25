@@ -1270,6 +1270,7 @@ static void cma_set_compare_data(enum rdma_port_space ps, struct sockaddr *addr,
 		}
 		break;
 #ifdef INET6
+	struct in6_addr ip6_addr;
 	case AF_INET6:
 		ip6_addr = ((struct sockaddr_in6 *) addr)->sin6_addr;
 		if (ps == RDMA_PS_SDP) {
