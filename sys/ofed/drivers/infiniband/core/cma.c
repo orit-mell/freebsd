@@ -1244,9 +1244,6 @@ static void cma_set_compare_data(enum rdma_port_space ps, struct sockaddr *addr,
 	struct cma_hdr *cma_data, *cma_mask;
 	struct sdp_hh *sdp_data, *sdp_mask;
 	__be32 ip4_addr;
-#ifdef INET6
-	struct in6_addr ip6_addr;
-#endif
 
 	memset(compare, 0, sizeof *compare);
 	cma_data = (void *) compare->data;
@@ -2958,7 +2955,7 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
 								 0xFF10A01B)) {
 		/* IPv6 address is an SA assigned MGID. */
 		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
-	} else if ((addr->sa_family == AF_INET6)) {
+	} else if (addr->sa_family == AF_INET6) {
 		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
 		if (id_priv->id.ps == RDMA_PS_UDP)
 			mc_map[7] = 0x01;	/* Use RDMA CM signature */

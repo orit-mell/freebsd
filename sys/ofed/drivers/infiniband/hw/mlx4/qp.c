@@ -617,7 +617,7 @@ static int init_qpg_parent(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *pqp,
 	struct mlx4_ib_qpg_data *qpg_data;
 	int tss_num, rss_num;
 	int tss_align_num, rss_align_num;
-	int tss_base, rss_base;
+	int tss_base, rss_base = 0;
 	int err;
 
 	/* Parent is part of the TSS range (in SW TSS ARP is sent via parent) */

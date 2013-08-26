@@ -56,11 +56,6 @@ enum mlx4_query_reply {
 	MLX4_QUERY_MINE_NOPORT 	= 0
 };
 
-enum mlx4_prot {
-	MLX4_PROT_IB,
-	MLX4_PROT_EN,
-};
-
 enum mlx4_mcast_prot {
 	MLX4_MCAST_PROT_IB = 0,
 	MLX4_MCAST_PROT_EN = 1,
