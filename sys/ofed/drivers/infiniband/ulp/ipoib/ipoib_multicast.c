@@ -173,8 +173,8 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
 
 	if (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags)) {
 		if (test_and_set_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags)) {
-			ipoib_warn(priv, "multicast group %16D already attached\n",
-				   mcast->mcmember.mgid.raw, ":");
+			//ipoib_warn(priv, "multicast group %16D already attached\n",
+			//	   mcast->mcmember.mgid.raw, ":");
 
 			return 0;
 		}
@@ -182,8 +182,8 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
 		ret = ipoib_mcast_attach(priv, be16_to_cpu(mcast->mcmember.mlid),
 					 &mcast->mcmember.mgid, set_qkey);
 		if (ret < 0) {
-			ipoib_warn(priv, "couldn't attach QP to multicast group %16D\n",
-				   mcast->mcmember.mgid.raw, ":");
+			//ipoib_warn(priv, "couldn't attach QP to multicast group %16D\n",
+			//	   mcast->mcmember.mgid.raw, ":");
 
 			clear_bit(IPOIB_MCAST_FLAG_ATTACHED, &mcast->flags);
 			return ret;
@@ -371,8 +371,8 @@ static int ipoib_mcast_join_complete(int status,
 			ipoib_dbg_mcast(priv, "multicast join failed for %16D, status %d\n",
 					mcast->mcmember.mgid.raw, ":", status);
 		} else {
-			ipoib_warn(priv, "multicast join failed for %16D, status %d\n",
-				   mcast->mcmember.mgid.raw, ":", status);
+			//ipoib_warn(priv, "multicast join failed for %16D, status %d\n",
+			//	   mcast->mcmember.mgid.raw, ":", status);
 		}
 	}
 
