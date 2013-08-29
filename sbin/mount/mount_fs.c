@@ -94,6 +94,7 @@ mount_fs(const char *vfstype, int argc, char *argv[])
 	while ((ch = getopt(argc, argv, "o:")) != -1) {
 		switch(ch) {
 		case 'o':
+			fprintf(stderr, "mount_fs: %s\n", optarg);
 			getmntopts(optarg, mopts, &mntflags, 0);
 			p = strchr(optarg, '=');
 			val = NULL;

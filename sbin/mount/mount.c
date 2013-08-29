@@ -278,6 +278,7 @@ main(int argc, char *argv[])
 			/* For compatibility with the Linux version of mount. */
 			break;
 		case 'o':
+			fprintf(stderr, "main: getopt: %s\n", optarg);
 			if (*optarg) {
 				options = catopt(options, optarg);
 				if (specified_ro(optarg))
