@@ -39,6 +39,7 @@
 #define SET_PORT_PROMISC_EN_SHIFT	31
 #define SET_PORT_PROMISC_MODE_SHIFT	30
 
+#if 0 //moved to port.c - shahark
 
 struct mlx4_set_port_general_context {
 	u8 reserved[3];
@@ -67,6 +68,7 @@ struct mlx4_set_port_rqp_calc_context {
 	__be32 promisc;
 	__be32 mcast;
 };
+#endif
 
 #define VLAN_FLTR_SIZE	128
 struct mlx4_set_vlan_fltr_mbox {

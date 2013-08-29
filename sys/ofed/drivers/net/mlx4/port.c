@@ -834,7 +834,10 @@ int mlx4_SET_PORT_qpn_calc(struct mlx4_dev *dev, u8 port, u32 base_qpn,
 	memset(context, 0, sizeof *context);
 
 	context->base_qpn = cpu_to_be32(base_qpn);
-	context->n_mac = dev->caps.log_num_macs;
+        /* 
+        * This assignment breaks vlan support - I don't know why. Probablya an A0 issue - shahar Klein
+	* context->n_mac = dev->caps.log_num_macs;
+        */
 	context->promisc = cpu_to_be32(promisc << SET_PORT_PROMISC_SHIFT |
 				       base_qpn);
 	context->mcast = cpu_to_be32(m_promisc << SET_PORT_MC_PROMISC_SHIFT |
