@@ -43,6 +43,10 @@ __FBSDID("$FreeBSD$");
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/mount.h>
+
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
 #include <ctype.h>
 #include <err.h>
@@ -878,11 +882,59 @@ usage(void)
 	exit(1);
 }
 
+/*
+ * returns a string based on the filesystem aux mount options.
+ * use free(3) to release when done.
+ */
+static char *
+getaddlmountopts(struct statfs *ent)
+{
+	int error;
+	struct vfsidctl ctl;
+	size_t olen;
+	char *rv;
+
+	bzero(&ctl, sizeof(ctl));
+	ctl.vc_vers = VFS_CTL_VERS1;
+	ctl.vc_fsid = ent->f_fsid;
+	strcpy(ctl.vc_fstypename, ent->f_fstypename);
+#ifndef VFS_CTL_MOUNTOPTS
+#define VFS_CTL_MOUNTOPTS   0x00010004
+#endif
+	ctl.vc_op = VFS_CTL_MOUNTOPTS;
+	ctl.vc_ptr = NULL;
+	ctl.vc_len = 0;
+
+	error = sysctlbyname("vfs.ctl", NULL, &olen, &ctl, sizeof(ctl));
+	if (error == ENOTSUP) {
+		return (NULL);
+	} else if (error) {
+		warn("sysctl getlen: VFS_CTL_MOUNTOPTS %s", ent->f_mntonname);
+		return (NULL);
+	}
+	/*
+	 * Try not to fail by allocation a minumum size of 80 bytes
+	 * in case mount options change while listing filesystems.
+	 */
+	warnx("got olen back %d", (int)olen);
+	olen = olen * 2;
+	if (olen < 80)
+		olen = 80;
+	rv = malloc(olen);
+	if (!rv)
+		err(1, "malloc");
+	error = sysctlbyname("vfs.ctl", rv, &olen, &ctl, sizeof(ctl));
+	if (error) {
+		err(1, "sysctl FETCH: VFS_CTL_MOUNTOPTS %s", ent->f_mntonname);
+	}
+	return (rv);
+}
+
 void
 putfsent(struct statfs *ent)
 {
 	struct fstab *fst;
-	char *opts, *rw;
+	char *opts, *rw, *addlopts;
 	int l;
 
 	opts = NULL;
@@ -894,6 +946,9 @@ putfsent(struct statfs *ent)
 
 	opts = flags2opts(ent->f_flags);
 	opts = catopt(rw, opts);
+	addlopts = getaddlmountopts(ent);
+	if (addlopts)
+		opts = catopt(addlopts, opts);
 
 	if (strncmp(ent->f_mntfromname, "<below>", 7) == 0 ||
 	    strncmp(ent->f_mntfromname, "<above>", 7) == 0) {

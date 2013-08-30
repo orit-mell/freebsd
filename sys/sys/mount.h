@@ -522,6 +522,7 @@ struct vfsidctl {
 #define VFS_CTL_QUERY	0x00010001	/* anything wrong? (vfsquery) */
 #define VFS_CTL_TIMEO	0x00010002	/* set timeout for vfs notification */
 #define VFS_CTL_NOLOCKS	0x00010003	/* disable file locking */
+#define VFS_CTL_MOUNTOPTS   0x00010004	/* get mount options (string) */
 
 struct vfsquery {
 	u_int32_t	vq_flags;

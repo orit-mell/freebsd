@@ -58,6 +58,7 @@ static vfs_mount_t	devfs_mount;
 static vfs_unmount_t	devfs_unmount;
 static vfs_root_t	devfs_root;
 static vfs_statfs_t	devfs_statfs;
+static vfs_sysctl_t	devfs_sysctl;
 
 static const char *devfs_opts[] = {
 	"from", "export", "ruleset", "expandsymlinks", NULL
@@ -287,11 +288,40 @@ devfs_statfs(struct mount *mp, struct statfs *sbp)
 	return (0);
 }
 
+static int
+devfs_sysctl(struct mount *mp, fsctlop_t op, struct sysctl_req *req)
+{
+	struct devfs_mount *fmp = VFSTODEVFS(mp);
+	const char *mntopts;
+	int error;
+
+	error = 0;
+	switch (op) {
+	case VFS_CTL_MOUNTOPTS:
+		if (fmp->dm_flags & DM_EXPANDSYMLINKS)
+			mntopts = "expandsymlinks";
+		else
+			mntopts = "";
+		if (req->oldptr == NULL) {
+			req->oldidx = strlen(mntopts) + 1;
+			return (0);
+		}
+		error = SYSCTL_OUT(req, mntopts, strlen(mntopts)+1);
+		if (error)
+			return (error);
+		break;
+	default:
+		return (ENOTSUP);
+	}
+	return (error);
+}
+
 static struct vfsops devfs_vfsops = {
 	.vfs_mount =		devfs_mount,
 	.vfs_root =		devfs_root,
 	.vfs_statfs =		devfs_statfs,
 	.vfs_unmount =		devfs_unmount,
+	.vfs_sysctl =		devfs_sysctl,
 };
 
 VFS_SET(devfs_vfsops, devfs, VFCF_SYNTHETIC | VFCF_JAIL);
