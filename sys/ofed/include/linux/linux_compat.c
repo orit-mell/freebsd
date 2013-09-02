@@ -213,6 +213,9 @@ linux_file_dtor(void *cdp)
 
 	filp = cdp;
 	filp->f_op->release(filp->f_vnode, filp);
+        if (curthread->td_fpop) {
+                filp->f_op->release(curthread->td_fpop->f_vnode, filp);
+        }
 	vdrop(filp->f_vnode);
 	kfree(filp);
 }
@@ -267,6 +270,8 @@ linux_dev_close(struct cdev *dev, int fflag, int devtype, struct thread *td)
 	if ((error = devfs_get_cdevpriv((void **)&filp)) != 0)
 		return (error);
 	filp->f_flags = file->f_flag;
+        devfs_clear_cdevpriv();
+        
 
 	return (0);
 }
