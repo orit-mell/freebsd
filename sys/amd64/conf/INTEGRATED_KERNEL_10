@@ -204,15 +204,15 @@ device		ppi		# Parallel port interface device
 device		puc		# Multi I/O cards and multi-channel UARTs
 
 # PCI Ethernet NICs.
-#device		bxe		# Broadcom BCM57710/BCM57711/BCM57711E 10Gb Ethernet
-#device		de		# DEC/Intel DC21x4x (``Tulip'')
-#device		em		# Intel PRO/1000 Gigabit Ethernet Family
-#device		igb		# Intel PRO/1000 PCIE Server Gigabit Family
-#device		ixgbe		# Intel PRO/10GbE PCIE Ethernet Family
-#device		le		# AMD Am7900 LANCE and Am79C9xx PCnet
-#device		ti		# Alteon Networks Tigon I/II gigabit Ethernet
-#device		txp		# 3Com 3cR990 (``Typhoon'')
-#device		vx		# 3Com 3c590, 3c595 (``Vortex'')
+device		bxe		# Broadcom BCM57710/BCM57711/BCM57711E 10Gb Ethernet
+device		de		# DEC/Intel DC21x4x (``Tulip'')
+device		em		# Intel PRO/1000 Gigabit Ethernet Family
+device		igb		# Intel PRO/1000 PCIE Server Gigabit Family
+device		ixgbe		# Intel PRO/10GbE PCIE Ethernet Family
+device		le		# AMD Am7900 LANCE and Am79C9xx PCnet
+device		ti		# Alteon Networks Tigon I/II gigabit Ethernet
+device		txp		# 3Com 3cR990 (``Typhoon'')
+device		vx		# 3Com 3c590, 3c595 (``Vortex'')
 
 # PCI Ethernet NICs that use the common MII bus controller code.
 # NOTE: Be sure to keep the 'device miibus' line in order to use these NICs!
@@ -293,8 +293,8 @@ device		wpi		# Intel 3945ABG wireless NICs.
 # Pseudo devices.
 device		loop		# Network loopback
 device		random		# Entropy device
-options 	PADLOCK_RNG	# VIA Padlock RNG
-options 	RDRAND_RNG	# Intel Bull Mountain RNG
+device		padlock_rng	# VIA Padlock RNG
+device		rdrand_rng	# Intel Bull Mountain RNG
 device		ether		# Ethernet support
 device		vlan		# 802.1Q VLAN support
 device		tun		# Packet tunnel.
