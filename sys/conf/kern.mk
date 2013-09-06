@@ -34,11 +34,11 @@ CWARNEXTRA?=	-Wno-error-tautological-compare -Wno-error-empty-body \
 
 # External compilers may not support our format extensions.  Allow them
 # to be disabled.  WARNING: format checking is disabled in this case.
-#.if ${MK_FORMAT_EXTENSIONS} == "no"
-#NO_WFORMAT=		-Wno-format
-#.else
-#FORMAT_EXTENSIONS=	-fformat-extensions
-#.endif
+.if ${MK_FORMAT_EXTENSIONS} == "no"
+NO_WFORMAT=		-Wno-format
+.else
+FORMAT_EXTENSIONS=	-fformat-extensions
+.endif
 
 #
 # On i386, do not align the stack to 16-byte boundaries.  Otherwise GCC 2.95
