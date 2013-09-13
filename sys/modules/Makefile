@@ -127,6 +127,7 @@ SUBDIR=	\
 	${_hptrr} \
 	hwpmc \
 	${_i2c} \
+        ${_ibcore} \
 	${_ibcs2} \
 	${_ichwd} \
 	${_ida} \
@@ -148,6 +149,7 @@ SUBDIR=	\
 	${_igb} \
 	${_iir} \
 	${_io} \
+        ${_ipoib} \
 	${_ipdivert} \
 	${_ipfilter} \
 	${_ipfw} \
@@ -514,7 +516,6 @@ _linsysfs=	linsysfs
 _linux=		linux
 _mse=		mse
 .if ${MK_OFED} != "no" || defined(ALL_MODULES)
-_ipoib=         ipoib
 _mlx4=		mlx4
 _mlx4ib=	mlx4ib
 _mlxen=		mlxen
