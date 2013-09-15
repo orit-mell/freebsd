@@ -784,8 +784,8 @@ retry:
 			tx_desc->ctrl.srcrb_flags |=
 			    cpu_to_be32(MLX4_WQE_CTRL_IP_CSUM);
 		// Hardware can not do CSUM on frags.
-		if (((mb->m_flags & M_FRAG) == 0) &&
-		    (mb->m_pkthdr.csum_flags & (CSUM_TCP|CSUM_UDP)))
+		//if (((mb->m_flags & M_FRAG) == 0) &&
+		if (mb->m_pkthdr.csum_flags & (CSUM_TCP|CSUM_UDP))
 			tx_desc->ctrl.srcrb_flags |=
 			    cpu_to_be32(MLX4_WQE_CTRL_TCP_UDP_CSUM);
 		priv->port_stats.tx_chksum_offload++;
