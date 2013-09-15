@@ -48,8 +48,9 @@ sock_getname(struct socket *so, struct sockaddr *addr, int *sockaddr_len,
 	int error;
 
 	nam = NULL;
-	if ((so->so_state & (SS_ISCONNECTED|SS_ISCONFIRMING)) == 0)
-		return (-ENOTCONN);
+	if (peer) {
+		if ((so->so_state & (SS_ISCONNECTED|SS_ISCONFIRMING)) == 0)
+			return (-ENOTCONN);
 
 		error = (*so->so_proto->pr_usrreqs->pru_peeraddr)(so, &nam);
 	} else
