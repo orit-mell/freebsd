@@ -325,7 +325,7 @@ device		iwi		# Intel 2200BG/2225BG/2915ABG wireless NICs.
 device		iwn		# Intel 4965/1000/5000/6000 wireless NICs.
 device  	mlx4ib		# Mellanox ConnectX HCA InfiniBand
 device  	mlxen		# Mellanox ConnectX HCA Ethernet
-device  	mthca		# Mellanox HCA InfiniBand
+#device  	mthca		# Mellanox HCA InfiniBand
 device		nfe		# nVidia nForce MCP on-board Ethernet
 device		nve		# nVidia nForce MCP on-board Ethernet Networking
 device		sfxge		# Solarflare SFC9000 10Gb Ethernet

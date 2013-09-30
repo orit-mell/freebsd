@@ -521,7 +521,7 @@ _mse=		mse
 _mlx4=		mlx4
 _mlx4ib=	mlx4ib
 _mlxen=		mlxen
-_mthca=		mthca
+#_mthca=		mthca
 .endif
 _ncv=		ncv
 _ndis=		ndis
@@ -721,7 +721,7 @@ _mly=		mly
 _mlx4=		mlx4
 _mlx4ib=	mlx4ib
 _mlxen=		mlxen
-_mthca=		mthca
+#_mthca=		mthca
 .endif
 _ndis=		ndis
 _nfe=		nfe
